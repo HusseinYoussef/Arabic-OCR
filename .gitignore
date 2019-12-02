@@ -4,4 +4,4 @@ Dataset
 .vscode
 /src/__pycache__
 *.png
-test.ipynb
+test.*

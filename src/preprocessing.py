@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 
 def binary_otsus(image, filter:int=1):
-    """ Binarize an image 0's and 255's using Otsu's Binarization """
+    """Binarize an image 0's and 255's using Otsu's Binarization"""
 
     if len(image.shape) == 3:
         gray_img = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
@@ -26,14 +26,14 @@ def binary_otsus(image, filter:int=1):
 
 
 def deskew(binary_img):
-    """ Rotate an image by some degrees to fix skewed images """
-    invert_img = cv.bitwise_not(binary_img)
-
-    # thresh = binary_otsus(gray_img, 0)
-
-    coords = np.column_stack(np.where(invert_img > 0))
-    angle = cv.minAreaRect(coords)[-1]
+    """Rotate an image by some degrees to fix skewed images"""
     
+    # Get white pixels
+    coords = np.column_stack(np.where(binary_img > 0))
+    
+    # Get the minimum bounding rectangle (center (x, y), (width, height), rotation angle)
+    angle = cv.minAreaRect(coords)[-1]
+ 
     if angle < -45:
         angle = -(90 + angle)
     else:
@@ -42,15 +42,26 @@ def deskew(binary_img):
     (h, w) = binary_img.shape[:2]
     center = (w // 2, h // 2)
     M = cv.getRotationMatrix2D(center, angle, 1.0)
-    rotated_img = cv.warpAffine(binary_img, M, (w, h), flags=cv.INTER_CUBIC, borderMode=cv.BORDER_REPLICATE)
+    rotated = cv.warpAffine(binary_img, M, (w, h), flags=cv.INTER_CUBIC, borderMode=cv.BORDER_REPLICATE)
 
-    return rotated_img
+    return rotated
 
 
-def expand(gray_img):
-    """ Expand the image by some white space horizontally in both directions"""
+def vexpand(gray_img, color:int):
+    """Expand the image by some space vertically in both directions"""
 
+    color = 1 if color > 0 else 0
     (h, w) = gray_img.shape[:2]
-    white_space = np.ones((h, 5)) * 255
+    space = np.ones((10, w)) * 255 * color
 
-    return np.block([white_space, gray_img, white_space])
+    return np.block([[space], [gray_img], [space]])
+
+
+def hexpand(gray_img, color:int):
+    """Expand the image by some space horizontally in both directions"""
+
+    color = 1 if color > 0 else 0
+    (h, w) = gray_img.shape[:2]
+    space = np.ones((h, 10)) * 255 * color
+
+    return np.block([space, gray_img, space])

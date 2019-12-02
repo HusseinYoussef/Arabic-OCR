@@ -14,11 +14,10 @@ def save_image(img, folder, title):
 
 def projection(gray_img, axis:str='horizontal'):
     """ Compute the horizontal or the vertical projection of a gray image """
-    invert_img = cv.bitwise_not(gray_img)
 
     if axis == 'horizontal':
-        projection_bins = np.sum(invert_img, 1)    
+        projection_bins = np.sum(gray_img, 1)    
     elif axis == 'vertical':
-        projection_bins = np.sum(invert_img, 0)    
+        projection_bins = np.sum(gray_img, 0)    
 
     return projection_bins
