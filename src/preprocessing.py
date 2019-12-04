@@ -65,3 +65,28 @@ def hexpand(gray_img, color:int):
     space = np.ones((h, 10)) * 255 * color
 
     return np.block([space, gray_img, space])
+
+def valid(row, col, vis, word):
+    return (row < vis.shape[0] and col < vis.shape[1] and row >= 0 and col >=0 and vis[row][col] == 0 and word[row][col] > 0)
+
+def dfs(row, col, vis, word):
+
+    dX = [0,0,1,1,-1,-1,1,-1]
+    dY = [1,-1,0,1,0,-1,-1,1]
+    vis[row][col] += 1
+    for i in range(8):
+        if(valid(row+dX[i],col+dY[i],vis, word)):
+            dfs(row+dX[i], col+dY[i], vis, word)
+    return
+
+def erase_points(word , baseline):
+    vis = np.zeros(word.shape)
+    print(vis.shape)
+    for i in range(word.shape[1]):
+        if(vis[baseline][i]==0):
+            dfs(baseline,i,vis,word)
+    
+    for i in range(baseline):
+        for j in range(word.shape[1]):
+            if(vis[i][j]==0):
+                word[i][j] = 0
