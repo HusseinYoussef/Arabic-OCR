@@ -15,8 +15,6 @@ from sklearn.svm import SVC
 from sklearn.metrics import classification_report, confusion_matrix
 import warnings
 
-
-
 #%matplotlib inline
 def whiteBlackRatio(img):
     h = img.shape[0]
@@ -88,7 +86,6 @@ def histogramAndCenterOfMass(img):
                 localHist+=1
         histogram.append(localHist)
       
-
     return sumX/num , sumY/num, histogram
 
 def getFeatures(img):
@@ -137,7 +134,7 @@ def getFeatures(img):
     xCenter, yCenter,xHistogram =histogramAndCenterOfMass(img)
     featuresList.append(xCenter)
     featuresList.append(yCenter)
-    featuresList.extend(xHistogram)
+    #featuresList.extend(xHistogram)
     #print(len(featuresList))
     return featuresList
 def get_immediate_subdirectories(a_dir):
@@ -158,40 +155,57 @@ def getListOfFiles(dirName):
         else:
             allFiles.append(fullPath)
                 
-    return allFiles        
-def main():
-    data=np.array([])
-    classes=np.array([])
-    chars=get_immediate_subdirectories('../binary')
-    count=0
-    numOfFeatures=216
-    for char in chars:
-        listOfFiles = getListOfFiles('../binary/'+char)
-        
-        for filename in listOfFiles:
-            img = cv.imread(filename)
-            gray_img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
-            binary_img = binary_otsus(gray_img, 0)
-            features=getFeatures(binary_img)
-            data= np.append(data,features)
-            classes=np.append(classes,char)
-            count+=1
-            #print (features)
-            #show_image(img)
-    #np.savetxt('test.txt', data)    
+    return allFiles 
+def trainAndClassify(data,classes):
     
-
-    print(data.shape)
-    print(classes.shape)
-    data=np.reshape(data,(count,numOfFeatures))
-    print(data.shape)
-    X_train, X_test, y_train, y_test = train_test_split(data, classes, test_size = 0.10)
-    svclassifier = SVC(kernel='rbf', gamma =0.01 , C =100)
+    X_train, X_test, y_train, y_test = train_test_split(data, classes, test_size = 0.20)
+    svclassifier = SVC(kernel='rbf', gamma =0.005 , C =1000)
     svclassifier.fit(X_train, y_train)
     y_pred = svclassifier.predict(X_test)
     print(confusion_matrix(y_test, y_pred))
-    test1=cv.imread(filename)
     print(classification_report(y_test, y_pred))
 
-main()
+def removeMargins(img):
+    th, threshed = cv.threshold(img, 245, 255, cv.THRESH_BINARY_INV)
+    ## (2) Morph-op to remove noise
+    kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, (11,11))
+    morphed = cv.morphologyEx(threshed, cv.MORPH_CLOSE, kernel)
+    ## (3) Find the max-area contour
+    cnts = cv.findContours(morphed, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)[-2]
+    cnt = sorted(cnts, key=cv.contourArea)[-1]
+    ## (4) Crop and save it
+    x,y,w,h = cv.boundingRect(cnt)
+    dst = img[y:y+h, x:x+w]
+    return dst
 
+def optimizedGetFeatures(img):
+    x,y= img.shape
+    featuresList=[]
+
+
+def main():
+    data=np.array([])
+    classes=np.array([])
+    directory='../LettersDataset'
+    chars=get_immediate_subdirectories(directory)
+    count=0
+    numOfFeatures=16
+    charPositions=['Beginning','End','Isolated','Middle']
+    for char in chars:
+        for position in charPositions:
+            if(os.path.isdir(directory+'/'+char+'/'+position)==True):
+                listOfFiles = getListOfFiles(directory+'/'+char+'/'+position)
+                for filename in listOfFiles:
+                    img = cv.imread(filename)
+                    gray_img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+                    cropped = removeMargins(gray_img)
+                    binary_img = binary_otsus(cropped, 0)
+                    features=getFeatures(binary_img)
+                    data= np.append(data,features)
+                    classes=np.append(classes,char+position)
+                    count+=1
+    
+    data=np.reshape(data,(count,numOfFeatures))
+    trainAndClassify(data,classes)
+
+main()
