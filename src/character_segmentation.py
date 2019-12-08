@@ -431,13 +431,13 @@ def segment(line, word_img):
 
 if __name__ == "__main__":
     
-    img = cv.imread('../Dataset/scanned/capr2.png')
+    img = cv.imread('../Dataset/scanned/capr1.png')
     lines = line_horizontal_projection(img)
 
     line = lines[2]
     words = word_vertical_projection([line])[0]
 
-    word = words[6]
+    word = words[1]
 
     # breakpoint()
     segment(line, word)
