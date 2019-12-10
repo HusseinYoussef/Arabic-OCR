@@ -693,7 +693,7 @@ def segment(line, word_img):
 
 if __name__ == "__main__":
     
-    img = cv.imread('../Dataset/scanned/capr2.png')
+    img = cv.imread('../Dataset/scanned/capr1.png')
     lines = line_horizontal_projection(img)
 
     line = lines[7]
