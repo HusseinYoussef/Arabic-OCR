@@ -28,7 +28,7 @@ def preprocess(image):
     return deskewed_img
 
 
-def projection_segmentation(clean_img, axis, cut=2):
+def projection_segmentation(clean_img, axis, cut=3):
     
     segments = []
     start = -1
@@ -54,64 +54,13 @@ def projection_segmentation(clean_img, axis, cut=2):
     return segments
 
 
-def baseline_detection(line_binary_image):
-
-    # Perform morphological thinning
-    thinned_img = thin(line_binary_image)
-
-    # Compute the Horizontal Projection (HP) for the thinned image
-    HP = projection(thinned_img, 'horizontal')
-
-    # baseline index is the index corresponding to the peak value
-    baseline_idx = np.where(HP == np.amax(HP))[0][0]
-    
-    # line_binary_image[baseline_idx, :] = 255
-    # cv.imwrite('line.png', line_binary_image)
-    # breakpoint()
-
-    return baseline_idx
-
-
-def maximum_transitions(line_binary_image, baseline_idx):
-
-    max_transitions = 0
-    max_transitions_idx = baseline_idx
-    line_idx = baseline_idx
-
-    while line_idx >= 0:
-
-        current_transitions = 0
-        flag = 0
-
-        horizontal_line = line_binary_image[line_idx, :]
-        for pixel in reversed(horizontal_line):
-
-            if pixel == 255 and flag == 0:
-                current_transitions += 1
-                flag = 1
-            elif pixel == 0 and flag == 1:
-                # current_transitions += 1
-                flag = 0
-        if current_transitions >= max_transitions:
-            max_transitions = current_transitions
-            max_transitions_idx = line_idx
-
-        line_idx -= 1
-    
-    line_binary_image[baseline_idx, :] = 255
-    line_binary_image[max_transitions_idx, :] = 255
-    cv.imwrite('line.png', line_binary_image)
-    breakpoint()
-
-    return max_transitions_idx
-
-
 # Line Segmentation
 #----------------------------------------------------------------------------------------
 def line_horizontal_projection(image, cut=2):
 
     # Preprocess input image
     clean_img = preprocess(image)
+
 
     # Segmentation    
     lines = projection_segmentation(clean_img, axis='horizontal', cut=cut)
@@ -121,7 +70,7 @@ def line_horizontal_projection(image, cut=2):
 
 # Word Segmentation
 #----------------------------------------------------------------------------------------
-def word_vertical_projection(line_images:list, cut=3):
+def word_vertical_projection(line_images:list, cut=2):
     
     lines_words = []
     for line_image in line_images:
