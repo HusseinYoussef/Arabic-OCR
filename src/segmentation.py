@@ -13,7 +13,7 @@ def preprocess(image):
     gray_img = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
     gray_img = cv.bitwise_not(gray_img)
 
-    # cv.imwrite('origin.png', gray_img)
+    cv.imwrite('origin.png', gray_img)
     binary_img = binary_otsus(gray_img, 0)
     deskewed_img = deskew(binary_img)
 
@@ -22,7 +22,7 @@ def preprocess(image):
     # breakpoint()
 
     # Visualize
-    # cv.imwrite('output.png', deskewed_img)
+    cv.imwrite('output.png', deskewed_img)
 
     # breakpoint()
     return deskewed_img
@@ -70,29 +70,34 @@ def line_horizontal_projection(image, cut=2):
 
 # Word Segmentation
 #----------------------------------------------------------------------------------------
-def word_vertical_projection(line_images:list, cut=2):
+def word_vertical_projection(line_image, cut=2):
     
-    lines_words = []
-    for line_image in line_images:
-        line_words = projection_segmentation(line_image, axis='vertical', cut=cut)
-        lines_words.append(line_words)
+    line_words = projection_segmentation(line_image, axis='vertical', cut=cut)
+    line_words.reverse()
+    
+    return line_words
 
-    return lines_words
+
+def extract_words(img):
+
+    lines = line_horizontal_projection(img)
+    words = []
+    for idx, line in enumerate(lines):
+        # save_image(line, 'lines', f'line{idx}')
+
+        line_words = word_vertical_projection(line)
+        for w in line_words:
+            words.append((w, line))
+        # words.extend(line_words)
+
+    # breakpoint()
+    # for idx, word in enumerate(words):
+    #     save_image(word, 'words', f'word{idx}')
+
+    return words
 
 
 if __name__ == "__main__":
-    pass
-    # paths = glob('../Dataset/scanned/*.png')
-    # breakpoint()
-
+    
     img = cv.imread('../Dataset/scanned/capr2.png')
-    lines = line_horizontal_projection(img)
-    for idx, line in enumerate(lines):
-        save_image(line, 'lines', f'line{idx}')
-
-    words = word_vertical_projection([lines[6]])
-    for idx, word in enumerate(words[0]):
-        save_image(word, 'words', f'word{idx}')
-
-    # baseline = baseline_detection(lines[3])
-    # maximum_transitions(lines[3], baseline)
+    extract_words(img)

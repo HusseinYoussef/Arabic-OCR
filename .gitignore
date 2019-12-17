@@ -5,3 +5,4 @@ Dataset
 /src/__pycache__
 *.png
 test.*
+*.zip
