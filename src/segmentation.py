@@ -1,6 +1,6 @@
 import numpy as np
 import cv2 as cv
-from preprocessing import binary_otsus, deskew
+from preprocessing import binary_otsus, deskew, skew
 from utilities import projection, save_image
 from glob import glob
 import matplotlib.pyplot as plt
@@ -13,16 +13,17 @@ def preprocess(image):
     gray_img = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
     gray_img = cv.bitwise_not(gray_img)
 
-    cv.imwrite('origin.png', gray_img)
     binary_img = binary_otsus(gray_img, 0)
-    deskewed_img = deskew(binary_img)
+    cv.imwrite('origin.png', gray_img)
 
+    # deskewed_img = deskew(binary_img)
+    deskewed_img = skew(binary_img)
+    cv.imwrite('output.png', deskewed_img)
 
     # binary_img = binary_otsus(deskewed_img, 0)
     # breakpoint()
 
     # Visualize
-    cv.imwrite('output.png', deskewed_img)
 
     # breakpoint()
     return deskewed_img
@@ -56,7 +57,7 @@ def projection_segmentation(clean_img, axis, cut=3):
 
 # Line Segmentation
 #----------------------------------------------------------------------------------------
-def line_horizontal_projection(image, cut=2):
+def line_horizontal_projection(image, cut=3):
 
     # Preprocess input image
     clean_img = preprocess(image)
@@ -70,7 +71,7 @@ def line_horizontal_projection(image, cut=2):
 
 # Word Segmentation
 #----------------------------------------------------------------------------------------
-def word_vertical_projection(line_image, cut=2):
+def word_vertical_projection(line_image, cut=3):
     
     line_words = projection_segmentation(line_image, axis='vertical', cut=cut)
     line_words.reverse()
@@ -78,26 +79,32 @@ def word_vertical_projection(line_image, cut=2):
     return line_words
 
 
-def extract_words(img):
+def extract_words(img, visual=0):
 
     lines = line_horizontal_projection(img)
     words = []
+    
     for idx, line in enumerate(lines):
-        # save_image(line, 'lines', f'line{idx}')
+        
+        if visual:
+            save_image(line, 'lines', f'line{idx}')
 
         line_words = word_vertical_projection(line)
         for w in line_words:
+            # if len(words) == 585:
+            #     print(idx)
             words.append((w, line))
         # words.extend(line_words)
 
     # breakpoint()
-    # for idx, word in enumerate(words):
-    #     save_image(word, 'words', f'word{idx}')
+    if visual:
+        for idx, word in enumerate(words):
+            save_image(word[0], 'words', f'word{idx}')
 
     return words
 
 
 if __name__ == "__main__":
     
-    img = cv.imread('../Dataset/scanned/capr2.png')
-    extract_words(img)
+    img = cv.imread('../Dataset/scanned/capr1015.png')
+    extract_words(img, 1)

@@ -83,6 +83,11 @@ def horizontal_transitions(word_img, baseline_idx):
     #     return lines[2]
     # else:
     #     return lines[-1]
+    # if len(lines) == 0:
+    #     # breakpoint()
+    #     # plt.imshow(word_img, 'gray')
+    #     # plt.show()
+    #     return 0
     return lines[len(lines)//2]
     return max_transitions_idx
 
@@ -370,9 +375,11 @@ def check_stroke(no_dots_copy, segment, upper_base, lower_base, SR1, SR2):
     cnt = 0
     for proj in VP:
         if proj >= height:
+            cnt += 2
+        elif proj == height-1:
             cnt += 1
     # abs(MFV - MFV_HP) <= 2
-    if SHPB == 0  and height <= 6 and VT <= 2 and seg_width <= 6 and cnt >= 1:
+    if SHPB == 0  and height <= 6 and VT <= 2 and seg_width <= 6 and cnt >= 2:
         return True
 
     return False
@@ -408,6 +415,7 @@ def filter_regions(word_img, SRL:list, VP:list, upper_base:int, lower_base:int, 
             continue
 
       
+
         # Case 3 : Contain Holes
         # if check_hole(no_dots_copy[:, end_idx: cut_idx]) and inside_hole(no_dots_copy, end_idx, start_idx):
         cc, l = cv.connectedComponents(1-(no_dots_copy[:, end_idx:start_idx+1]), connectivity=4)
@@ -436,8 +444,6 @@ def filter_regions(word_img, SRL:list, VP:list, upper_base:int, lower_base:int, 
             
             j += 1
 
-        # if SR_idx == 5:
-        #    breakpoint()
         if cnt < segment_width-2 and segment_width > 4:
             
             segment_HP = projection(segment, 'horizontal')
@@ -457,14 +463,18 @@ def filter_regions(word_img, SRL:list, VP:list, upper_base:int, lower_base:int, 
                 continue
 
       
+        # if SR_idx == 0:
+        #     breakpoint()
         # Case 5 : Last region or next VP[nextcut] = 0
         if SR_idx == len(SRL) - 1 or VP[SRL[SR_idx+1][1]] == 0:
 
             if SR_idx == len(SRL) - 1:
+                segment_dots = word_img[:, :SRL[SR_idx][1]+1]
                 segment = no_dots_copy[:, :SRL[SR_idx][1]+1]
                 next_cut = 0
             else:
                 next_cut = SRL[SR_idx+1][1]
+                segment_dots = word_img[:, next_cut:SRL[SR_idx][1]+1]
                 segment = no_dots_copy[:, next_cut:SRL[SR_idx][1]+1]
 
             segment_HP = projection(segment, 'horizontal')
@@ -499,7 +509,7 @@ def filter_regions(word_img, SRL:list, VP:list, upper_base:int, lower_base:int, 
                 if seg_VP[index] >= height:
                     cnt += 1
             
-            # if SR_idx == len(SRL)-1:
+            # if SR_idx == 0:
             #     breakpoint()
             # if ((-2 <= (upper_base - top_left_pixel) < 0)\
             #     or (0 <= (upper_base - top) <= 2) and (0 <=(upper_base - top_left_pixel) <= 1)\
@@ -507,7 +517,7 @@ def filter_regions(word_img, SRL:list, VP:list, upper_base:int, lower_base:int, 
             #     and not check_hole(segment):
             #     SR_idx += 1
             #     continue
-            if (SHPB <= 5 and cnt > 0 and height <= 6) or (len(non_zero) >= 10 and SHPB > SHPA):
+            if (SHPB <= 5 and cnt > 0 and height <= 6) or (len(non_zero) >= 10 and SHPB > SHPA and not check_dots(segment_dots)):
                 SR_idx += 1
                 continue
             # else:
@@ -567,7 +577,7 @@ def filter_regions(word_img, SRL:list, VP:list, upper_base:int, lower_base:int, 
             SEGNN_SR2 = (SRL[SR_idx+3][0], SRL[SR_idx+3][2])
 
             
-        # if SR_idx == 6:
+        # if SR_idx == 0:
         #     breakpoint()
         
         # SEG is stroke with dots
@@ -685,14 +695,16 @@ def extract_char(img, valid_SR):
         next_cut = SR[1]
     char_imgs.append(img[:, 0:next_cut])
 
-    # breakpoint()
+    # plt.imshow(char_imgs[-1], 'gray')
+    # plt.show()
 
     return char_imgs
 
 
 def segment(line, word_img):
 
-    binary_word = binarize(word_img)
+    # binary_word = binarize(word_img)
+    binary_word = word_img//255
     no_dots_copy = remove_dots(binary_word)
 
     l = binary_word.copy()
@@ -706,6 +718,10 @@ def segment(line, word_img):
     upper_base, lower_base, MFV = baseline_detection(remove_dots(line))
     MTI = horizontal_transitions(no_dots_copy, upper_base)
 
+    # if MTI == 0:
+    #     plt.imshow(l, 'gray')
+    #     plt.show()
+        
     SRL, wrong = cut_points(binary_word, VP, MFV, MTI, upper_base)
 
     if wrong:
@@ -724,7 +740,6 @@ def segment(line, word_img):
     # print(f'upper: {upper_base}')
     # print(f'lower: {lower_base}')
     # print(f'MTI: {MTI}')
-    # print(SRL)
 
     # plt.imshow(no_dots_copy, 'gray')
     # plt.show()
@@ -737,11 +752,13 @@ def segment(line, word_img):
     # V[MTI, :, :] = [255, 0, 0]
     # for region in valid:
     #     V[:, region[1], :] = [255, 0, 0]
+    # print(SRL)
     # print(valid)
 
     # plt.imshow(V, 'gray')
     # plt.show()
 
+    # breakpoint()
     chars = extract_char(binary_word, valid)
 
     return chars
@@ -749,13 +766,13 @@ def segment(line, word_img):
 
 if __name__ == "__main__":
     
-    img = cv.imread('../Dataset/scanned/capr2.png')
+    img = cv.imread('../Dataset/scanned/capr17.png')
     lines = line_horizontal_projection(img)
 
-    line = lines[3]
+    line = lines[-2]
     words = word_vertical_projection(line)
 
-    word = words[6]
+    word = words[10]
 
     cr = segment(line, word)
     # breakpoint()

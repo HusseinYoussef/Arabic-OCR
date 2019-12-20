@@ -1,6 +1,8 @@
 import numpy as np
 import cv2 as cv
 import matplotlib.pyplot as plt
+from scipy.ndimage import interpolation as inter
+from PIL import Image as im
 
 
 def binary_otsus(image, filter:int=1):
@@ -46,6 +48,44 @@ def deskew(binary_img):
 
     return rotated
 
+def find_score(arr, angle):
+    data = inter.rotate(arr, angle, reshape=False, order=0)
+    hist = np.sum(data, axis=1)
+    score = np.sum((hist[1:] - hist[:-1]) ** 2)
+    return hist, score
+
+def skew(binary_img):
+
+    
+    ht, wd = binary_img.shape
+    # _, binary_img = cv.threshold(img, 127, 255, cv.THRESH_BINARY)
+
+    # pix = np.array(img.convert('1').getdata(), np.uint8)
+    bin_img = (binary_img // 255.0)
+
+    delta = 0.1
+    limit = 5
+    angles = np.arange(-limit, limit+delta, delta)
+    scores = []
+    for angle in angles:
+        hist, score = find_score(bin_img, angle)
+        scores.append(score)
+
+    best_score = max(scores)
+    best_angle = angles[scores.index(best_score)]
+    # print('Best angle: {}'.formate(best_angle))
+
+    # correct skew
+    data = inter.rotate(bin_img, best_angle, reshape=False, order=0)
+    img = im.fromarray((255 * data).astype("uint8"))
+
+    img.save('skew_corrected.png')
+    pix = np.array(img)
+    # d = set()
+    # for i in pix.flatten():
+    #     d.add(i)
+    # breakpoint()
+    return pix
 
 def vexpand(gray_img, color:int):
     """Expand the image by some space vertically in both directions"""
