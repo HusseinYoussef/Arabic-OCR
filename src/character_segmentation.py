@@ -312,11 +312,11 @@ def remove_dots(word_img, threshold=11):
 
 def check_dots(segment):
 
-    contours, hierarchy = cv.findContours(segment, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
+    contours, hierarchy = cv.findContours(segment[:, 1:segment.shape[1]-1], cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
 
     cnt = 0
     for c in contours:
-        if len(c) >= 2:
+        if len(c) >= 1:
             cnt +=1 
     return cnt > 1
 
@@ -577,7 +577,7 @@ def filter_regions(word_img, SRL:list, VP:list, upper_base:int, lower_base:int, 
             SEGNN_SR2 = (SRL[SR_idx+3][0], SRL[SR_idx+3][2])
 
             
-        # if SR_idx == 0:
+        # if SR_idx == 6:
         #     breakpoint()
         
         # SEG is stroke with dots
@@ -707,8 +707,6 @@ def segment(line, word_img):
     binary_word = word_img//255
     no_dots_copy = remove_dots(binary_word)
 
-    l = binary_word.copy()
-
     VP_no_dots = projection(no_dots_copy, 'vertical')
     VP = projection(binary_word, 'vertical')
     binary_word = fill(binary_word, VP_no_dots)
@@ -718,6 +716,7 @@ def segment(line, word_img):
     upper_base, lower_base, MFV = baseline_detection(remove_dots(line))
     MTI = horizontal_transitions(no_dots_copy, upper_base)
 
+    # l = binary_word.copy()
     # if MTI == 0:
     #     plt.imshow(l, 'gray')
     #     plt.show()
@@ -731,10 +730,10 @@ def segment(line, word_img):
 
     HP = projection(line, 'horizontal')
     top_line = -1
-    for i, proj in enumerate(HP):
-        if proj != 0:
-            top_line = i
-            break
+    # for i, proj in enumerate(HP):
+    #     if proj != 0:
+    #         top_line = i
+    #         break
 
     # print(f'MFV: {MFV}')
     # print(f'upper: {upper_base}')
@@ -766,13 +765,13 @@ def segment(line, word_img):
 
 if __name__ == "__main__":
     
-    img = cv.imread('../Dataset/scanned/capr17.png')
+    img = cv.imread('../Dataset/scanned/capr196.png')
     lines = line_horizontal_projection(img)
 
-    line = lines[-2]
+    line = lines[12]
     words = word_vertical_projection(line)
 
-    word = words[10]
+    word = words[-3]
 
     cr = segment(line, word)
     # breakpoint()

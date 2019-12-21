@@ -19,9 +19,13 @@ chars = ['ا', 'ب', 'ت', 'ث', 'ج', 'ح', 'خ', 'د', 'ذ', 'ر', 'ز', 'س',
 'ق','ك', 'ل', 'م', 'ن', 'ه', 'و','ي','لا']
 train_ratio = 0.8
 script_path = os.getcwd()
-classifiers = [svm.LinearSVC(), MLPClassifier(alpha=1e-5, hidden_layer_sizes=(1, 100)), GaussianNB()]
-names = ['LinearSVM', 'Neural_Nets_1', 'Gaussian_Naive_Bayes']
-skip = [0, 1, 1]
+classifiers = [ svm.LinearSVC(),
+                MLPClassifier(alpha=1e-4, hidden_layer_sizes=(100,), max_iter=1000),
+                MLPClassifier(alpha=1e-5, hidden_layer_sizes=(200, 100,), max_iter=1000),
+                GaussianNB()]
+
+names = ['LinearSVM', '1L_NN', '2L_NN', 'Gaussian_Naive_Bayes']
+skip = [1, 0, 1, 1]
 
 width = 25
 height = 25
@@ -68,15 +72,23 @@ def bound_box(img_char):
     return img_char[top:down+1, left:right+1]
 
 
-def prepare_char(char_img):
+def binarize(char_img):
     _, binary_img = cv.threshold(char_img, 127, 255, cv.THRESH_BINARY)
     # _, binary_img = cv.threshold(word_img, 0, 255, cv.THRESH_BINARY+cv.THRESH_OTSU)
     binary_char = binary_img // 255
 
-    char_box = bound_box(binary_char)
-    resized = cv.resize(char_box, dim, interpolation = cv.INTER_AREA)
+    return binary_char
 
-    
+
+def prepare_char(char_img):
+
+    binary_char = binarize(char_img)
+
+    try:
+        char_box = bound_box(binary_char)
+        resized = cv.resize(char_box, dim, interpolation = cv.INTER_AREA)
+    except:
+        pass
     # breakpoint()
     return resized
 
@@ -88,7 +100,7 @@ def featurizer(char_img):
     return flat_char
 
 
-def read_data():
+def read_data(limit=4000):
 
     X = []
     Y = []
@@ -102,15 +114,15 @@ def read_data():
         if os.path.exists(folder):
             os.chdir(folder)
 
-            print(f'Reading images for char {char}')
-            for char_path in tqdm(char_paths, total=len(char_paths)):
+            print(f'\nReading images for char {char}')
+            for char_path in tqdm(char_paths[:limit], total=len(char_paths)):
                 num = re.findall(r'\d+', char_path)[0]
                 # breakpoint()
                 char_img = cv.imread(f'{num}.png', 0)
                 ready_char = prepare_char(char_img)
                 feature_vector = featurizer(ready_char)
-                X.append(char)
-                # X.append(feature_vector)
+                # X.append(char)
+                X.append(feature_vector)
                 Y.append(char)
                 # breakpoint()
 
@@ -126,9 +138,9 @@ def train():
 
     X, Y = shuffle(X, Y)
 
-    for x, y in zip(X, Y):
-        if x != y:
-            breakpoint()
+    # for x, y in zip(X, Y):
+    #     if x != y:
+    #         breakpoint()
     X_train = []
     Y_train = []
     X_test = []
@@ -142,29 +154,75 @@ def train():
     Y_test = np.array(Y_test)
 
     breakpoint()
+    scores = []
     for idx, clf in enumerate(classifiers):
 
         if not skip[idx]:
 
             clf.fit(X_train, Y_train)
-            print(clf.score(X_test, Y_test))
+            score = clf.score(X_test, Y_test)
+            scores.append(score)
+            print(score)
 
             # Save the model
-            location = f'models/{names[idx]}.sav'
+            destination = f'models'
+            if not os.path.exists(destination):
+                os.makedirs(destination)
             
-    # indices = [i for i in range(len(X))]
-    # random.shuffle(indices)
+            location = f'models/{names[idx]}.sav'
+            pickle.dump(clf, open(location, 'wb'))
 
-    # X_data = X[indices]
-    # Y_labels = Y[indices]
 
-    # num_train = int((80/100) * len(X))
+    with open('models/report.txt', 'w') as fo:
+        for score, name in zip(scores, names):
+            fo.writelines(f'Score of {name}: {score}\n')
 
-    # X_train = X_data[:num_train]
-    # Y_train = Y_labels[:num_train]
+
+def test(limit=3000):
+
+    location = f'models/{names[0]}.sav'
+    clf = pickle.load(open(location, 'rb'))
+     
+    X = []
+    Y = []
+    tot = 0
+    for char in tqdm(chars, total=len(chars)):
+
+        folder = f'../Dataset/char_sample/{char}'
+        char_paths =  glob(f'../Dataset/char_sample/{char}/*.png')
+
+        # breakpoint()
+
+        if os.path.exists(folder):
+            os.chdir(folder)
+
+            print(f'\nReading images for char {char}')
+            tot += len(char_paths) - limit
+            for char_path in tqdm(char_paths[limit:], total=len(char_paths)):
+                num = re.findall(r'\d+', char_path)[0]
+                # breakpoint()
+                char_img = cv.imread(f'{num}.png', 0)
+                ready_char = prepare_char(char_img)
+                feature_vector = featurizer(ready_char)
+                # X.append(char)
+                X.append(feature_vector)
+                Y.append(char)
+                # breakpoint()
+
+            os.chdir(script_path)
     
-    # X_test = X_data[num_train:]
-    # Y_test = Y_labels[num_train:]
+    breakpoint()
+    cnt = 0
+    for x, y in zip(X, Y):
+
+        c = clf.predict([x])[0]
+        if c == y:
+            cnt += 1
+
+    breakpoint()
 
 
-train()
+if __name__ == "__main__":
+
+    train()
+    # test()

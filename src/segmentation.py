@@ -106,5 +106,5 @@ def extract_words(img, visual=0):
 
 if __name__ == "__main__":
     
-    img = cv.imread('../Dataset/scanned/capr1015.png')
+    img = cv.imread('../Dataset/scanned/capr196.png')
     extract_words(img, 1)

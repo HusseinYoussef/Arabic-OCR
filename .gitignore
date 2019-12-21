@@ -5,3 +5,6 @@ Dataset
 /src/__pycache__
 *.png
 test.*
+predicted
+truth
+test
