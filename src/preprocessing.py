@@ -64,7 +64,7 @@ def skew(binary_img):
     bin_img = (binary_img // 255.0)
 
     delta = 0.1
-    limit = 5
+    limit = 3
     angles = np.arange(-limit, limit+delta, delta)
     scores = []
     for angle in angles:

@@ -385,11 +385,10 @@ def check_stroke(no_dots_copy, segment, upper_base, lower_base, SR1, SR2):
     return False
 
 
-def filter_regions(word_img, SRL:list, VP:list, upper_base:int, lower_base:int, MTI:int, MFV:int, top_line:int):
+def filter_regions(word_img, no_dots_copy, SRL:list, VP:list, upper_base:int, lower_base:int, MTI:int, MFV:int, top_line:int):
     
     valid_separation_regions = []
     overlap = []
-    no_dots_copy = remove_dots(word_img)
 
     T = 1
     components, labels= cv.connectedComponents(word_img[:lower_base+5, :], connectivity=8)
@@ -707,6 +706,8 @@ def segment(line, word_img):
     binary_word = word_img//255
     no_dots_copy = remove_dots(binary_word)
 
+    # l = binary_word.copy()
+
     VP_no_dots = projection(no_dots_copy, 'vertical')
     VP = projection(binary_word, 'vertical')
     binary_word = fill(binary_word, VP_no_dots)
@@ -716,7 +717,6 @@ def segment(line, word_img):
     upper_base, lower_base, MFV = baseline_detection(remove_dots(line))
     MTI = horizontal_transitions(no_dots_copy, upper_base)
 
-    # l = binary_word.copy()
     # if MTI == 0:
     #     plt.imshow(l, 'gray')
     #     plt.show()
@@ -743,7 +743,7 @@ def segment(line, word_img):
     # plt.imshow(no_dots_copy, 'gray')
     # plt.show()
 
-    valid = filter_regions(binary_word, SRL, VP, upper_base, lower_base, MTI, MFV, top_line)
+    valid = filter_regions(binary_word, no_dots_copy, SRL, VP, upper_base, lower_base, MTI, MFV, top_line)
 
     # post(upper_base, lower_base, MFV, binary_word, no_dots_copy ,valid[-1])
 
