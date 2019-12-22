@@ -14,11 +14,11 @@ def preprocess(image):
     gray_img = cv.bitwise_not(gray_img)
 
     binary_img = binary_otsus(gray_img, 0)
-    cv.imwrite('origin.png', gray_img)
+    # cv.imwrite('origin.png', gray_img)
 
     # deskewed_img = deskew(binary_img)
     deskewed_img = skew(binary_img)
-    cv.imwrite('output.png', deskewed_img)
+    # cv.imwrite('output.png', deskewed_img)
 
     # binary_img = binary_otsus(deskewed_img, 0)
     # breakpoint()
