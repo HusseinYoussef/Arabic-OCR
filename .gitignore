@@ -8,3 +8,4 @@ test.*
 output
 truth
 test
+*.txt

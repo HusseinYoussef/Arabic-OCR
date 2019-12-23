@@ -79,7 +79,7 @@ def skew(binary_img):
     data = inter.rotate(bin_img, best_angle, reshape=False, order=0)
     img = im.fromarray((255 * data).astype("uint8"))
 
-    img.save('skew_corrected.png')
+    # img.save('skew_corrected.png')
     pix = np.array(img)
     # d = set()
     # for i in pix.flatten():
