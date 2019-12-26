@@ -1,11 +1,6 @@
-Dataset
 *.pdf
 .ipynb_checkpoints
 .vscode
 /src/__pycache__
-*.png
-test.*
 output
-truth
 test
-*.txt
