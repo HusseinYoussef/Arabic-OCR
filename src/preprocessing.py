@@ -27,34 +27,13 @@ def binary_otsus(image, filter:int=1):
     return binary_img
 
 
-def deskew(binary_img):
-    """Rotate an image by some degrees to fix skewed images"""
-    
-    # Get white pixels
-    coords = np.column_stack(np.where(binary_img > 0))
-    
-    # Get the minimum bounding rectangle (center (x, y), (width, height), rotation angle)
-    angle = cv.minAreaRect(coords)[-1]
- 
-    if angle < -45:
-        angle = -(90 + angle)
-    else:
-        angle = -angle
-
-    (h, w) = binary_img.shape[:2]
-    center = (w // 2, h // 2)
-    M = cv.getRotationMatrix2D(center, angle, 1.0)
-    rotated = cv.warpAffine(binary_img, M, (w, h), flags=cv.INTER_CUBIC, borderMode=cv.BORDER_REPLICATE)
-
-    return rotated
-
 def find_score(arr, angle):
     data = inter.rotate(arr, angle, reshape=False, order=0)
     hist = np.sum(data, axis=1)
     score = np.sum((hist[1:] - hist[:-1]) ** 2)
     return hist, score
 
-def skew(binary_img):
+def deskew(binary_img):
 
     
     ht, wd = binary_img.shape
