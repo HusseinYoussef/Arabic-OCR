@@ -29,18 +29,18 @@ Examples
 ========
 Line Segmentation
 -----------------
-![Line](./Figures/line.PNG)
+![Line](./Figures/line.png)
 
 Word Segmentation
 -----------------
-![Word](./Figures/word.PNG)
+![Word](./Figures/word.png)
 
 Character Segmentation
 ----------------------
-![Word](./Figures/char4.PNG)
-![Word](./Figures/char3.PNG)
-![Word](./Figures/char2.PNG)
-![Word](./Figures/char1.PNG)
+![Word](./Figures/char4.png)
+![Word](./Figures/char3.png)
+![Word](./Figures/char2.png)
+![Word](./Figures/char1.png)
 
 Performance
 ===========
