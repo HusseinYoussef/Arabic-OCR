@@ -1,6 +1,6 @@
 # **Arabic OCR**
 OCR system for Arabic language that converts images of typed text to machine-encoded text.<br>
-The system works on only letters for now (29 letters) ا-ى , لا.
+The system currently supports only letters (29 letters) ا-ى , لا.
 
 ## Setup
 Install python then run this command:
