@@ -22,7 +22,7 @@ pip install -r requirements.txt
 
 
 ## Dataset
-- Link to dataset of images and the corresponding text: [here](https://drive.google.com/drive/folders/1o8wM-QCfeEq78AyKm9bqjqAXcZpFCz0f).
+- Link to dataset of images and the corresponding text: [here](https://drive.google.com/open?id=1Nbp9ZXLlWV3n8yRMwj2gjs_rE6qGZU01).
 - We used 1000 images to generate character dataset that we used for training.
 
 Examples
