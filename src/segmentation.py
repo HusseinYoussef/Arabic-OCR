@@ -1,6 +1,6 @@
 import numpy as np
 import cv2 as cv
-from preprocessing import binary_otsus, deskew, skew
+from preprocessing import binary_otsus, deskew
 from utilities import projection, save_image
 from glob import glob
 import matplotlib.pyplot as plt
@@ -17,7 +17,7 @@ def preprocess(image):
     # cv.imwrite('origin.png', gray_img)
 
     # deskewed_img = deskew(binary_img)
-    deskewed_img = skew(binary_img)
+    deskewed_img = deskew(binary_img)
     # cv.imwrite('output.png', deskewed_img)
 
     # binary_img = binary_otsus(deskewed_img, 0)

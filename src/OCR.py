@@ -87,6 +87,8 @@ def run(image_path):
 if __name__ == "__main__":
 
     #Clear the old data in running_time.txt
+    if not os.path.exists('output'):
+        os.mkdir('output')
     open('output/running_time.txt', 'w').close()
 
     destination = 'output/text'
