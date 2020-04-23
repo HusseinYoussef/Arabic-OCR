@@ -4,5 +4,4 @@ scikit-learn
 scikit-image
 pandas
 matplotlib
-multiprocessing
 tqdm
