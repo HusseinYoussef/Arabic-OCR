@@ -69,19 +69,6 @@ def run(image_path):
     return (img_idx, exc_time)
     # with open('output/running_time.txt', 'a') as fo:
     #     fo.write(f'{img_idx}: {exc_time:.2f}s\n')
-    
-    
-
-# # The following function is optional.
-# def sort_output():
-#     RUN = []
-#     with open('output/running_time.txt', 'r') as r:
-#         for line in r:
-#             RUN.append((int(line.split(':')[0]), line.split(':')[1]))
-#     RUN.sort()
-#     with open('output/running_time.txt', 'w') as r:
-#         for t in RUN:
-#             r.writelines(f'image#{t[0]}: {t[1]}')       # if no need for printing 'image#id'.
 
 
 if __name__ == "__main__":
@@ -95,8 +82,10 @@ if __name__ == "__main__":
     if not os.path.exists(destination):
         os.makedirs(destination)
     
-    images_paths = glob('test/*.png')
-
+    types = ['png', 'jpg']
+    images_paths = []
+    for t in types:
+        images_paths.extend(glob(f'test/*.{t}'))
     before = time.time()
 
     # pool = mp.Pool(mp.cpu_count())

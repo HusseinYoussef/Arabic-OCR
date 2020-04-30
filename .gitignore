@@ -2,5 +2,3 @@
 .ipynb_checkpoints
 .vscode
 /src/__pycache__
-output
-test
