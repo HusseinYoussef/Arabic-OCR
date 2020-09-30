@@ -1,5 +1,5 @@
 numpy
-opencv-python
+opencv-python==4.1.1.26
 scikit-learn
 scikit-image
 pandas
