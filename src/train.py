@@ -89,7 +89,7 @@ def prepare_char(char_img):
         resized = cv.resize(char_box, dim, interpolation = cv.INTER_AREA)
     except:
         pass
-    # breakpoint()
+
     return resized
 
 
@@ -110,21 +110,18 @@ def read_data(limit=4000):
         folder = f'../Dataset/char_sample/{char}'
         char_paths =  glob(f'../Dataset/char_sample/{char}/*.png')
 
-        # breakpoint()
         if os.path.exists(folder):
             os.chdir(folder)
 
             print(f'\nReading images for char {char}')
             for char_path in tqdm(char_paths[:limit], total=len(char_paths)):
                 num = re.findall(r'\d+', char_path)[0]
-                # breakpoint()
                 char_img = cv.imread(f'{num}.png', 0)
                 ready_char = prepare_char(char_img)
                 feature_vector = featurizer(ready_char)
                 # X.append(char)
                 X.append(feature_vector)
                 Y.append(char)
-                # breakpoint()
 
             os.chdir(script_path)
             
@@ -138,9 +135,6 @@ def train():
 
     X, Y = shuffle(X, Y)
 
-    # for x, y in zip(X, Y):
-    #     if x != y:
-    #         breakpoint()
     X_train = []
     Y_train = []
     X_test = []
@@ -153,9 +147,8 @@ def train():
     X_test = np.array(X_test)
     Y_test = np.array(Y_test)
 
-    breakpoint()
     scores = []
-    for idx, clf in enumerate(classifiers):
+    for idx, clf in tqdm(enumerate(classifiers), desc='Classifiers'):
 
         if not skip[idx]:
 
@@ -191,7 +184,6 @@ def test(limit=3000):
         folder = f'../Dataset/char_sample/{char}'
         char_paths =  glob(f'../Dataset/char_sample/{char}/*.png')
 
-        # breakpoint()
 
         if os.path.exists(folder):
             os.chdir(folder)
@@ -200,26 +192,21 @@ def test(limit=3000):
             tot += len(char_paths) - limit
             for char_path in tqdm(char_paths[limit:], total=len(char_paths)):
                 num = re.findall(r'\d+', char_path)[0]
-                # breakpoint()
                 char_img = cv.imread(f'{num}.png', 0)
                 ready_char = prepare_char(char_img)
                 feature_vector = featurizer(ready_char)
                 # X.append(char)
                 X.append(feature_vector)
                 Y.append(char)
-                # breakpoint()
 
             os.chdir(script_path)
     
-    breakpoint()
     cnt = 0
     for x, y in zip(X, Y):
 
         c = clf.predict([x])[0]
         if c == y:
             cnt += 1
-
-    breakpoint()
 
 
 if __name__ == "__main__":
