@@ -61,14 +61,11 @@ def run(image_path):
     exc_time = after-before
     # Create file with the same name of the image
     img_name = image_path.split('\\')[1].split('.')[0]
-    # img_idx = int(img_name.split('_')[1])         # the valid one for testing day.
-    img_idx = int(''.join(i for i in img_name if i.isdigit()))
+
     with open(f'output/text/{img_name}.txt', 'w', encoding='utf8') as fo:
         fo.writelines(predicted_text)
 
-    return (img_idx, exc_time)
-    # with open('output/running_time.txt', 'a') as fo:
-    #     fo.write(f'{img_idx}: {exc_time:.2f}s\n')
+    return (img_name, exc_time)
 
 
 if __name__ == "__main__":
@@ -82,7 +79,7 @@ if __name__ == "__main__":
     if not os.path.exists(destination):
         os.makedirs(destination)
     
-    types = ['png', 'jpg']
+    types = ['png', 'jpg', 'bmp']
     images_paths = []
     for t in types:
         images_paths.extend(glob(f'test/*.{t}'))
