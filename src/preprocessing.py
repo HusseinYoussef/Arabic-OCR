@@ -1,6 +1,5 @@
 import numpy as np
 import cv2 as cv
-import matplotlib.pyplot as plt
 from scipy.ndimage import interpolation as inter
 from PIL import Image as im
 
@@ -60,10 +59,6 @@ def deskew(binary_img):
 
     # img.save('skew_corrected.png')
     pix = np.array(img)
-    # d = set()
-    # for i in pix.flatten():
-    #     d.add(i)
-    # breakpoint()
     return pix
 
 def vexpand(gray_img, color:int):
@@ -97,15 +92,3 @@ def dfs(row, col, vis, word):
         if(valid(row+dX[i],col+dY[i],vis, word)):
             dfs(row+dX[i], col+dY[i], vis, word)
     return
-
-def erase_points(word , baseline):
-    vis = np.zeros(word.shape)
-    print(vis.shape)
-    for i in range(word.shape[1]):
-        if(vis[baseline][i]==0):
-            dfs(baseline,i,vis,word)
-    
-    for i in range(baseline):
-        for j in range(word.shape[1]):
-            if(vis[i][j]==0):
-                word[i][j] = 0

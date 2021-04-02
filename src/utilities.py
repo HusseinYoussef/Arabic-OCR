@@ -1,11 +1,5 @@
 import numpy as np
 import cv2 as cv
-import matplotlib.pyplot as plt
-
-
-def show_image(gray_img):
-    plt.imshow(gray_img, 'gray')
-    plt.show()
 
 
 def save_image(img, folder, title):

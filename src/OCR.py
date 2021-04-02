@@ -7,7 +7,6 @@ from character_segmentation import segment
 from segmentation import extract_words
 from train import prepare_char, featurizer
 import pickle
-import matplotlib.pyplot as plt
 import multiprocessing as mp
 
 model_name = '2L_NN.sav'
@@ -28,8 +27,6 @@ def run2(obj):
         try:
             ready_char = prepare_char(char_img)
         except:
-            # plt.imshow(word, 'gray')
-            # plt.show()
             # breakpoint()
             continue
         feature_vector = featurizer(ready_char)

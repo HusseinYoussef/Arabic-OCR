@@ -1,29 +1,15 @@
 import cv2 as cv
 import os
 import re
-import pandas as pd
-import matplotlib.pyplot as plt
 from segmentation import extract_words
 from character_segmentation import segment
 from glob import glob
 from utilities import projection
 from tqdm import tqdm
 
-# def num(val):
-
-#     numbers = re.compile('\d+')
-#     match = numbers.search(val)
-#     breakpoint()
-#     return match.group(0)
 
 img_paths = glob('..\\Dataset\\scanned/*.png')
 txt_paths = glob('..\\Dataset\\text/*.txt')
-
-# img_paths.sort(key = num)
-# txt_paths.sort(key = num)
-
-# breakpoint()
-
 
 script_path = os.getcwd()
 width = 25
@@ -67,11 +53,6 @@ def prepare_dataset(limit=1000):
     print("Processing Images")
     for img_path, txt_path in tqdm(zip(img_paths[:limit], txt_paths[:limit]), total=len(img_paths)):
 
-        # test = 'capr7'
-        # txt_path = f'../Dataset/text/{test}.txt'
-        # img_path = f'../Dataset/scanned/{test}.png'
-
-        # breakpoint()
         assert(img_path.split('\\')[-1].split('.')[0] == txt_path.split('\\')[-1].split('.')[0])
 
         # Text Part of the image
@@ -114,17 +95,6 @@ def prepare_dataset(limit=1000):
                     if not os.path.exists(destination):
                         os.makedirs(destination)
                         
-                    # char_box = bound_box(img_char)
-                    # resized = cv.resize(char_box, dim, interpolation = cv.INTER_AREA)
-                    
-                    # if txt_char == 'ه' and directory['ه'] == 3:
-                    #     breakpoint()
-
-                    #     plt.imshow(char_box, 'gray')
-                    #     plt.show()
-                    #     plt.imshow(resized, 'gray')
-                    #     plt.show()
-                    
                     os.chdir(destination)
                     cv.imwrite(f'{number}.png', img_char)
                     os.chdir(script_path)
@@ -136,7 +106,6 @@ def prepare_dataset(limit=1000):
                 # lst.append(txt_word)
 
         # print(f'\nAcc: {100-(error*100/len(img_words))}')
-        # breakpoint()
 
     print('\nDone')
 
