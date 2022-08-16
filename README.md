@@ -1,9 +1,15 @@
 # **Arabic OCR**
 
+  ![GitHub contributors](https://img.shields.io/badge/contributions-open-green)
+  [![GitHub forks](https://img.shields.io/github/forks/HusseinYoussef/Arabic-OCR)](https://github.com/HusseinYoussef/Arabic-OCR/network)
+  [![GitHub stars](https://img.shields.io/github/stars/HusseinYoussef/Arabic-OCR)](https://github.com/HusseinYoussef/Arabic-OCR/stargazers)
+  [![GitHub license](https://img.shields.io/github/license/HusseinYoussef/Arabic-OCR)](https://github.com/HusseinYoussef/Arabic-OCR/blob/master/LICENSE)
+  
 - OCR system for Arabic language that converts images of typed text to machine-encoded text.<br>
-- The system currently supports only letters (29 letters) ا-ى , لا.
 - The system aims to solve a simpler problem of OCR with images that contain only Arabic characters (check the dataset link below to see a sample of the images).
 
+## Important Note
+> The system currently supports only letters (29 letters) ا-ى , لا (no numbers or special symbols).
 ## Setup
 
 Install python then run this command:
