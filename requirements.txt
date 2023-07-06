@@ -1,4 +1,4 @@
-﻿cycler==0.10.0
+cycler==0.10.0
 decorator==5.0.3
 editdistance==0.5.3
 imageio==2.9.0
@@ -13,7 +13,7 @@ python-dateutil==2.8.1
 PyWavelets==1.1.1
 scikit-image==0.18.1
 scikit-learn==0.22
-scipy==1.6.2
+scipy==1.10.0
 six==1.15.0
 threadpoolctl==2.1.0
 tifffile==2021.3.31
