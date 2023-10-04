@@ -1,4 +1,4 @@
-﻿cycler==0.10.0
+cycler==0.10.0
 decorator==5.0.3
 editdistance==0.5.3
 imageio==2.9.0
@@ -7,7 +7,7 @@ kiwisolver==1.3.1
 networkx==2.5
 numpy==1.22.0
 opencv-python==4.5.1.48
-Pillow==9.3.0
+Pillow==10.0.1
 pyparsing==2.4.7
 python-dateutil==2.8.1
 PyWavelets==1.1.1
