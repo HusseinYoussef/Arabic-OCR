@@ -7,6 +7,7 @@ import sys
 import time
 from glob import glob
 
+import numpy as np
 from tqdm import tqdm
 
 from character_segmentation import segment
@@ -31,9 +32,21 @@ def load_model():
         return pickle.load(fin)
 
 
+_model = None
+
+
+def get_model():
+    """The classifier, loaded once per process instead of once per word."""
+
+    global _model
+    if _model is None:
+        _model = load_model()
+    return _model
+
+
 def run2(obj):
     word, line = obj
-    model = load_model()
+    model = get_model()
 
     # For each word in the image
     try:
@@ -43,7 +56,7 @@ def run2(obj):
         log.warning('Skipping a word that failed to segment: %s: %s', type(exc).__name__, exc)
         return ''
 
-    txt_word = ''
+    feature_vectors = []
     skipped = 0
     # For each character in the word
     for char_img in char_imgs:
@@ -51,13 +64,15 @@ def run2(obj):
         if ready_char is None:
             skipped += 1
             continue
-        feature_vector = featurizer(ready_char)
-        predicted_char = model.predict([feature_vector])[0]
-        txt_word += predicted_char
+        feature_vectors.append(featurizer(ready_char))
 
     if skipped:
         log.debug('Dropped %d unusable character image(s) in a word', skipped)
-    return txt_word
+    if not feature_vectors:
+        return ''
+
+    # One predict call for the whole word instead of one per character.
+    return ''.join(model.predict(np.array(feature_vectors)))
 
 
 def run(image_path, output_dir):
@@ -69,7 +84,7 @@ def run(image_path, output_dir):
     # Start Timer
     before = time.time()
     words = extract_words(full_image)       # [ (word, its line),(word, its line),..  ]
-    with mp.Pool(mp.cpu_count()) as pool:
+    with mp.Pool(mp.cpu_count(), initializer=get_model) as pool:
         predicted_words = pool.map(run2, words)
     # Stop Timer
     after = time.time()

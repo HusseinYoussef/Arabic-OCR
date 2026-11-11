@@ -12,6 +12,7 @@ sys.path.insert(0, SRC)
 import edit  # noqa: E402
 import OCR  # noqa: E402
 import utilities  # noqa: E402
+from character_segmentation import vertical_transitions  # noqa: E402
 from segmentation import projection_segmentation  # noqa: E402
 from train import prepare_char  # noqa: E402
 
@@ -46,6 +47,19 @@ def test_prepare_char_resizes_to_25x25():
     crop = np.zeros((12, 8), np.uint8)
     crop[2:10, 2:6] = 255
     assert prepare_char(crop).shape == (25, 25)
+
+
+@pytest.mark.parametrize('column, expected', [
+    ([0, 0, 0], 0),
+    ([1, 1, 1], 1),            # a run that reaches the bottom still counts once
+    ([0, 1, 1, 0], 2),
+    ([1, 0, 1, 0, 1], 5),
+    ([0, 1, 0, 1, 1, 0, 1], 5),
+])
+def test_vertical_transitions(column, expected):
+    img = np.array(column, np.uint8).reshape(-1, 1)
+    assert vertical_transitions(img, 0) == expected
+    assert vertical_transitions(img.astype(bool), 0) == expected
 
 
 def test_projection_rejects_unknown_axis():

@@ -80,22 +80,12 @@ def horizontal_transitions(word_img, baseline_idx):
 
 
 def vertical_transitions(word_img, cut):
-    
-    transitions = 0
+    """Number of 0 -> 1 and 1 -> 0 changes down column `cut` (image is 0/1)."""
 
-    vertical_line = word_img[:, cut]
+    column = (word_img[:, cut] == 1).astype(np.int8)
 
-    flag = 0
-    for pixel in vertical_line:
-
-        if pixel == 1 and flag == 0:
-            transitions += 1
-            flag = 1
-        elif pixel == 0 and flag == 1:
-            transitions += 1
-            flag = 0
-
-    return transitions
+    # The column is read as if it started with a 0 above the first pixel.
+    return int(np.count_nonzero(np.diff(column, prepend=0)))
 
 
 def cut_points(word_img, VP, MFV, MTI, baseline_idx):
