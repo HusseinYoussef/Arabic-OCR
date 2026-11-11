@@ -49,7 +49,15 @@ def projection_segmentation(clean_img, axis, cut=3):
                     segments.append(clean_img[:, max(start-1, 0):idx])
                 cnt = 0
                 start = -1
-    
+
+    # Ink that reaches the image edge never produces a closing run of empty
+    # bins, so the last segment is still open here and must be flushed.
+    if start != -1:
+        if axis == 'horizontal':
+            segments.append(clean_img[max(start-1, 0):, :])
+        elif axis == 'vertical':
+            segments.append(clean_img[:, max(start-1, 0):])
+
     return segments
 
 

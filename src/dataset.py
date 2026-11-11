@@ -8,8 +8,9 @@ from utilities import projection
 from tqdm import tqdm
 
 
-img_paths = glob('..\\Dataset\\scanned/*.png')
-txt_paths = glob('..\\Dataset\\text/*.txt')
+# sorted() so that images and texts pair up deterministically on every OS
+img_paths = sorted(glob(os.path.join('..', 'Dataset', 'scanned', '*.png')))
+txt_paths = sorted(glob(os.path.join('..', 'Dataset', 'text', '*.txt')))
 
 script_path = os.getcwd()
 width = 25
@@ -53,7 +54,8 @@ def prepare_dataset(limit=1000):
     print("Processing Images")
     for img_path, txt_path in tqdm(zip(img_paths[:limit], txt_paths[:limit]), total=len(img_paths)):
 
-        assert(img_path.split('\\')[-1].split('.')[0] == txt_path.split('\\')[-1].split('.')[0])
+        assert os.path.splitext(os.path.basename(img_path))[0] == os.path.splitext(os.path.basename(txt_path))[0], \
+            f'image/text mismatch: {img_path} vs {txt_path}'
 
         # Text Part of the image
         with open(txt_path, 'r', encoding='utf8') as fin:

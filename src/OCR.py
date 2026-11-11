@@ -24,10 +24,8 @@ def run2(obj):
     txt_word = ''
     # For each character in the word
     for char_img in char_imgs:
-        try:
-            ready_char = prepare_char(char_img)
-        except:
-            # breakpoint()
+        ready_char = prepare_char(char_img)
+        if ready_char is None:
             continue
         feature_vector = featurizer(ready_char)
         predicted_char = model.predict([feature_vector])[0]
@@ -57,7 +55,7 @@ def run(image_path):
 
     exc_time = after-before
     # Create file with the same name of the image
-    img_name = image_path.split('\\')[1].split('.')[0]
+    img_name = os.path.splitext(os.path.basename(image_path))[0]
 
     with open(f'output/text/{img_name}.txt', 'w', encoding='utf8') as fo:
         fo.writelines(predicted_text)

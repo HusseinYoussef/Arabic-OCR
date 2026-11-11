@@ -2,6 +2,7 @@ import numpy as np
 import cv2 as cv
 import os
 import re
+import sys
 import random
 from utilities import projection
 from glob import glob
@@ -25,7 +26,6 @@ classifiers = [ svm.LinearSVC(),
                 GaussianNB()]
 
 names = ['LinearSVM', '1L_NN', '2L_NN', 'Gaussian_Naive_Bayes']
-skip = [1, 0, 1, 1]
 
 width = 25
 height = 25
@@ -81,16 +81,26 @@ def binarize(char_img):
 
 
 def prepare_char(char_img):
+    """Crop a character image to its bounding box and resize it to `dim`.
+
+    Returns None when the image is empty or cannot be processed, so callers
+    must skip None results instead of relying on an exception.
+    """
+
+    if char_img is None or char_img.size == 0:
+        return None
 
     binary_char = binarize(char_img)
 
+    # An all-black crop has no ink, hence no bounding box.
+    if not binary_char.any():
+        return None
+
     try:
         char_box = bound_box(binary_char)
-        resized = cv.resize(char_box, dim, interpolation = cv.INTER_AREA)
-    except:
-        pass
-
-    return resized
+        return cv.resize(char_box, dim, interpolation=cv.INTER_AREA)
+    except cv.error:
+        return None
 
 
 def featurizer(char_img):
@@ -118,17 +128,39 @@ def read_data(limit=4000):
                 num = re.findall(r'\d+', char_path)[0]
                 char_img = cv.imread(f'{num}.png', 0)
                 ready_char = prepare_char(char_img)
+                if ready_char is None:
+                    print(f'Skipping unusable image: {char_path}')
+                    continue
                 feature_vector = featurizer(ready_char)
                 # X.append(char)
                 X.append(feature_vector)
                 Y.append(char)
 
             os.chdir(script_path)
-            
+
     return X, Y
 
 
-def train():
+def read_report(path='models/report.txt'):
+    """Return {model name: score line value} from an existing report."""
+
+    scores = {}
+    if os.path.exists(path):
+        with open(path, encoding='utf8') as fin:
+            for line in fin:
+                match = re.match(r'Score of (\S+): (\S+)', line)
+                if match:
+                    scores[match.group(1)] = match.group(2)
+    return scores
+
+
+def train(selected=None):
+    """Train the classifiers listed in `selected` (default: all of `names`)."""
+
+    selected = list(names) if not selected else selected
+    unknown = [n for n in selected if n not in names]
+    if unknown:
+        raise ValueError(f'Unknown model(s) {unknown}; choose from {names}')
 
     X, Y = read_data()
     assert(len(X) == len(Y))
@@ -147,28 +179,30 @@ def train():
     X_test = np.array(X_test)
     Y_test = np.array(Y_test)
 
-    scores = []
-    for idx, clf in tqdm(enumerate(classifiers), desc='Classifiers'):
+    # Keep scores of models that were not retrained this time.
+    scores = read_report()
+    for name, clf in tqdm(list(zip(names, classifiers)), desc='Classifiers'):
 
-        if not skip[idx]:
+        if name not in selected:
+            continue
 
-            clf.fit(X_train, Y_train)
-            score = clf.score(X_test, Y_test)
-            scores.append(score)
-            print(score)
+        clf.fit(X_train, Y_train)
+        score = clf.score(X_test, Y_test)
+        scores[name] = str(score)
+        print(f'{name}: {score}')
 
-            # Save the model
-            destination = f'models'
-            if not os.path.exists(destination):
-                os.makedirs(destination)
-            
-            location = f'models/{names[idx]}.sav'
-            pickle.dump(clf, open(location, 'wb'))
+        # Save the model
+        destination = 'models'
+        if not os.path.exists(destination):
+            os.makedirs(destination)
 
+        with open(f'models/{name}.sav', 'wb') as fo:
+            pickle.dump(clf, fo)
 
     with open('models/report.txt', 'w') as fo:
-        for score, name in zip(scores, names):
-            fo.writelines(f'Score of {name}: {score}\n')
+        for name in names:
+            if name in scores:
+                fo.write(f'Score of {name}: {scores[name]}\n')
 
 
 def test(limit=3000):
@@ -194,13 +228,15 @@ def test(limit=3000):
                 num = re.findall(r'\d+', char_path)[0]
                 char_img = cv.imread(f'{num}.png', 0)
                 ready_char = prepare_char(char_img)
+                if ready_char is None:
+                    continue
                 feature_vector = featurizer(ready_char)
                 # X.append(char)
                 X.append(feature_vector)
                 Y.append(char)
 
             os.chdir(script_path)
-    
+
     cnt = 0
     for x, y in zip(X, Y):
 
@@ -211,5 +247,6 @@ def test(limit=3000):
 
 if __name__ == "__main__":
 
-    train()
+    # Usage: python train.py [MODEL ...]   (default: all models in `names`)
+    train(sys.argv[1:])
     # test()
