@@ -4,7 +4,7 @@ import os
 import re
 import sys
 import random
-from utilities import projection
+from utilities import projection, read_image
 from glob import glob
 from tqdm import tqdm
 
@@ -19,7 +19,6 @@ import pickle
 chars = ['ا', 'ب', 'ت', 'ث', 'ج', 'ح', 'خ', 'د', 'ذ', 'ر', 'ز', 'س', 'ش', 'ص', 'ض', 'ط', 'ظ', 'ع', 'غ', 'ف',
 'ق','ك', 'ل', 'م', 'ن', 'ه', 'و','ي','لا']
 train_ratio = 0.8
-script_path = os.getcwd()
 classifiers = [ svm.LinearSVC(),
                 MLPClassifier(alpha=1e-4, hidden_layer_sizes=(100,), max_iter=1000),
                 MLPClassifier(alpha=1e-5, hidden_layer_sizes=(200, 100,), max_iter=1000),
@@ -110,33 +109,37 @@ def featurizer(char_img):
     return flat_char
 
 
+def load_char_images(char, start=0, stop=None):
+    """Yield (path, feature vector) for the sample images of one character."""
+
+    folder = os.path.join('..', 'Dataset', 'char_sample', char)
+    if not os.path.isdir(folder):
+        return
+
+    # Sort numerically on the file name (0.png, 1.png, 2.png, ... 10.png)
+    def number(path):
+        match = re.match(r'\d+', os.path.basename(path))
+        return int(match.group()) if match else -1
+
+    char_paths = sorted(glob(os.path.join(folder, '*.png')), key=number)
+    for char_path in char_paths[start:stop]:
+        char_img = read_image(char_path, cv.IMREAD_GRAYSCALE)
+        ready_char = prepare_char(char_img)
+        if ready_char is None:
+            print(f'Skipping unusable image: {char_path}')
+            continue
+        yield char_path, featurizer(ready_char)
+
+
 def read_data(limit=4000):
 
     X = []
     Y = []
     print("For each char")
     for char in tqdm(chars, total=len(chars)):
-
-        folder = f'../Dataset/char_sample/{char}'
-        char_paths =  glob(f'../Dataset/char_sample/{char}/*.png')
-
-        if os.path.exists(folder):
-            os.chdir(folder)
-
-            print(f'\nReading images for char {char}')
-            for char_path in tqdm(char_paths[:limit], total=len(char_paths)):
-                num = re.findall(r'\d+', char_path)[0]
-                char_img = cv.imread(f'{num}.png', 0)
-                ready_char = prepare_char(char_img)
-                if ready_char is None:
-                    print(f'Skipping unusable image: {char_path}')
-                    continue
-                feature_vector = featurizer(ready_char)
-                # X.append(char)
-                X.append(feature_vector)
-                Y.append(char)
-
-            os.chdir(script_path)
+        for _, feature_vector in load_char_images(char, 0, limit):
+            X.append(feature_vector)
+            Y.append(char)
 
     return X, Y
 
@@ -205,44 +208,27 @@ def train(selected=None):
                 fo.write(f'Score of {name}: {scores[name]}\n')
 
 
-def test(limit=3000):
+def test(limit=3000, model=None):
+    """Accuracy of a saved model on the samples after the first `limit` of each char."""
 
-    location = f'models/{names[0]}.sav'
-    clf = pickle.load(open(location, 'rb'))
-     
+    model = model or names[0]
+    with open(os.path.join('models', f'{model}.sav'), 'rb') as fin:
+        clf = pickle.load(fin)
+
     X = []
     Y = []
-    tot = 0
     for char in tqdm(chars, total=len(chars)):
+        for _, feature_vector in load_char_images(char, limit, None):
+            X.append(feature_vector)
+            Y.append(char)
 
-        folder = f'../Dataset/char_sample/{char}'
-        char_paths =  glob(f'../Dataset/char_sample/{char}/*.png')
+    if not X:
+        print('No test samples found')
+        return 0.0
 
-
-        if os.path.exists(folder):
-            os.chdir(folder)
-
-            print(f'\nReading images for char {char}')
-            tot += len(char_paths) - limit
-            for char_path in tqdm(char_paths[limit:], total=len(char_paths)):
-                num = re.findall(r'\d+', char_path)[0]
-                char_img = cv.imread(f'{num}.png', 0)
-                ready_char = prepare_char(char_img)
-                if ready_char is None:
-                    continue
-                feature_vector = featurizer(ready_char)
-                # X.append(char)
-                X.append(feature_vector)
-                Y.append(char)
-
-            os.chdir(script_path)
-
-    cnt = 0
-    for x, y in zip(X, Y):
-
-        c = clf.predict([x])[0]
-        if c == y:
-            cnt += 1
+    accuracy = accuracy_score(Y, clf.predict(np.array(X)))
+    print(f'{model}: accuracy on {len(X)} held-out samples = {accuracy:.4f}')
+    return accuracy
 
 
 if __name__ == "__main__":
