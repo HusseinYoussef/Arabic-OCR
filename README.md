@@ -9,25 +9,30 @@
 - The system aims to solve a simpler problem of OCR with images that contain only Arabic characters (check the dataset link below to see a sample of the images).
 
 ## Important Note
-> The system currently supports only letters (29 letters) ا-ى , لا (no numbers or special symbols).
+> The system currently supports only letters: the 28 letters ا-ي and the لا ligature (no numbers, special symbols, ة, ى or hamza forms).
 ## Setup
 
-Install python then run this command:
+Install Python 3.10 or newer (the code was last tested with Python 3.13), then run this command:
 
 ```shell
 pip install -r requirements.txt
 ```
 
+> The bundled models in `src/models` are pickles saved with an old scikit-learn (0.22). They still load with current versions, with a warning. Only load pickles you trust. If a future scikit-learn stops loading them, retrain with `python train.py` (see [Training](#training)).
+
 ## Run
 
-1. Put the images in src/test directory
-2. Go to src directory and run the following command
+1. Put the images in the src/test directory (or choose another folder with `--input`)
+2. Run the following command (from any directory)
    ```shell
-   python OCR.py
+   python src/OCR.py
    ```
-3. Output folder will be created with:
+   Options: `--input DIR` (default `src/test`), `--output DIR` (default `src/output`), `-v` (log characters that could not be read).
+3. The output folder will be created with:
    - text folder which has text files corresponding to the images.
    - running_time file which has the time taken to process each image.
+
+   The output folder is generated, so it is not tracked by git.
 
 ## Pipeline
 
@@ -37,6 +42,15 @@ pip install -r requirements.txt
 
 - Link to dataset of images and the corresponding text: [here](https://drive.google.com/open?id=1Nbp9ZXLlWV3n8yRMwj2gjs_rE6qGZU01).
 - We used 1000 images to generate character dataset that we used for training.
+- `Dataset/char_4K_sample.rar` in this repository is a sample of the character dataset.
+
+## Training
+
+All commands are run from the `src` folder.
+
+1. Make the character images available as `Dataset/char_sample/<character>/<n>.png` (`train.py` reads that layout; check that it matches what you extract from the archive). `python dataset.py` can generate such images from the full dataset (`Dataset/scanned/*.png` with `Dataset/text/*.txt`); it writes them to `Dataset/chars`.
+2. Train: `python train.py` trains all four classifiers, or name the ones you want: `python train.py 2L_NN`. Models are saved to `src/models` and their scores to `src/models/report.txt`.
+3. `OCR.py` uses `src/models/2L_NN.sav`.
 
 # Examples
 
@@ -65,10 +79,20 @@ From within `src` folder run:
 
 ![Test](./Figures/test.png)
 
+## Automated tests
+
+```shell
+pip install -r requirements-dev.txt
+pytest
+```
+
+The tests include an end-to-end run on the two sample images in `src/test` that fails if the average accuracy drops below 93% (it is currently 95.7%). They run on every push through GitHub Actions.
+
 # Performance
 
 - Average accuracy: 95%.
 - Average time per image: 16 seconds.
+- For reference, the two small sample images in `src/test` (about 340 words in total) take 0.5-0.7 seconds each on a 2-core Linux machine.
 
 ---
 
