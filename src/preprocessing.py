@@ -1,11 +1,13 @@
 import numpy as np
 import cv2 as cv
-from scipy.ndimage import interpolation as inter
+from scipy import ndimage
 from PIL import Image as im
 
 
-def binary_otsus(image, filter:int=1):
-    """Binarize an image 0's and 255's using Otsu's Binarization"""
+def binary_otsus(image, smooth:int=1):
+    """Binarize an image 0's and 255's using Otsu's Binarization.
+
+    A non-zero `smooth` blurs the image slightly before thresholding."""
 
     if len(image.shape) == 3:
         gray_img = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
@@ -13,7 +15,7 @@ def binary_otsus(image, filter:int=1):
         gray_img = image
 
     # Otsus Binarization
-    if filter != 0:
+    if smooth != 0:
         blur = cv.GaussianBlur(gray_img, (3,3), 0)
         binary_img = cv.threshold(blur, 0, 255, cv.THRESH_BINARY+cv.THRESH_OTSU)[1]
     else:
@@ -27,7 +29,7 @@ def binary_otsus(image, filter:int=1):
 
 
 def find_score(arr, angle):
-    data = inter.rotate(arr, angle, reshape=False, order=0)
+    data = ndimage.rotate(arr, angle, reshape=False, order=0)
     hist = np.sum(data, axis=1)
     score = np.sum((hist[1:] - hist[:-1]) ** 2)
     return hist, score
@@ -54,41 +56,9 @@ def deskew(binary_img):
     # print('Best angle: {}'.formate(best_angle))
 
     # correct skew
-    data = inter.rotate(bin_img, best_angle, reshape=False, order=0)
+    data = ndimage.rotate(bin_img, best_angle, reshape=False, order=0)
     img = im.fromarray((255 * data).astype("uint8"))
 
     # img.save('skew_corrected.png')
     pix = np.array(img)
     return pix
-
-def vexpand(gray_img, color:int):
-    """Expand the image by some space vertically in both directions"""
-
-    color = 1 if color > 0 else 0
-    (h, w) = gray_img.shape[:2]
-    space = np.ones((10, w)) * 255 * color
-
-    return np.block([[space], [gray_img], [space]])
-
-
-def hexpand(gray_img, color:int):
-    """Expand the image by some space horizontally in both directions"""
-
-    color = 1 if color > 0 else 0
-    (h, w) = gray_img.shape[:2]
-    space = np.ones((h, 10)) * 255 * color
-
-    return np.block([space, gray_img, space])
-
-def valid(row, col, vis, word):
-    return (row < vis.shape[0] and col < vis.shape[1] and row >= 0 and col >=0 and vis[row][col] == 0 and word[row][col] > 0)
-
-def dfs(row, col, vis, word):
-
-    dX = [0,0,1,1,-1,-1,1,-1]
-    dY = [1,-1,0,1,0,-1,-1,1]
-    vis[row][col] += 1
-    for i in range(8):
-        if(valid(row+dX[i],col+dY[i],vis, word)):
-            dfs(row+dX[i], col+dY[i], vis, word)
-    return

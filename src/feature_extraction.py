@@ -1,21 +1,20 @@
-import numpy as np
-import cv2 as cv
-import matplotlib.pyplot as plt
-from preprocessing import binary_otsus, deskew
-from utilities import *
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-from PIL import Image
-import glob
+"""Experimental per-letter-position SVM trained on hand-crafted features.
+
+Not used by OCR.py (which classifies characters with train.py's models). It
+expects a ../LettersDataset folder that is not part of this repository.
+"""
+
 import os
-import os.path
+
+import cv2 as cv
+import numpy as np
+from sklearn.metrics import classification_report, confusion_matrix
 from sklearn.model_selection import train_test_split
 from sklearn.svm import SVC
-from sklearn.metrics import classification_report, confusion_matrix
-import warnings
 
-#%matplotlib inline
+from preprocessing import binary_otsus
+
+
 def whiteBlackRatio(img):
     h = img.shape[0]
     w = img.shape[1]
@@ -89,10 +88,10 @@ def histogramAndCenterOfMass(img):
     return sumX/num , sumY/num, histogram
 
 def getFeatures(img):
-    x,y= img.shape
+    h, w = img.shape
     featuresList=[]
     # first feature: height/width ratio
-    featuresList.append(y/x)
+    featuresList.append(h/w)
     #second feature is ratio between black and white count pixels
     featuresList.append(whiteBlackRatio(img))
     #third and fourth features are the number of vertical and horizontal transitions
@@ -101,10 +100,10 @@ def getFeatures(img):
 
     #print (featuresList)
     #splitting the image into 4 images
-    topLeft=img[0:y//2,0:x//2]
-    topRight=img[0:y//2,x//2:x]
-    bottomeLeft=img[y//2:y,0:x//2]
-    bottomRight=img[y//2:y,x//2:x]
+    topLeft=img[0:h//2,0:w//2]
+    topRight=img[0:h//2,w//2:w]
+    bottomeLeft=img[h//2:h,0:w//2]
+    bottomRight=img[h//2:h,w//2:w]
 
     #get white to black ratio in each quarter
     featuresList.append(whiteBlackRatio(topLeft))
@@ -178,11 +177,6 @@ def removeMargins(img):
     dst = img[y:y+h, x:x+w]
     return dst
 
-def optimizedGetFeatures(img):
-    x,y= img.shape
-    featuresList=[]
-
-
 def main():
     data=np.array([])
     classes=np.array([])
@@ -208,4 +202,6 @@ def main():
     data=np.reshape(data,(count,numOfFeatures))
     trainAndClassify(data,classes)
 
-main()
+
+if __name__ == '__main__':
+    main()

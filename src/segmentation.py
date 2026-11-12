@@ -1,8 +1,6 @@
-import numpy as np
 import cv2 as cv
 from preprocessing import binary_otsus, deskew
 from utilities import projection, save_image
-from glob import glob
 
 
 def preprocess(image):

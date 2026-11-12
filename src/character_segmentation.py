@@ -1,8 +1,8 @@
 import numpy as np
 import cv2 as cv
-from utilities import projection, save_image
+from utilities import projection
 from segmentation import line_horizontal_projection, word_vertical_projection
-from skimage.morphology import skeletonize, thin
+from skimage.morphology import skeletonize
 
 
 def binarize(word_img):
@@ -206,28 +206,6 @@ def cut_points(word_img, VP, MFV, MTI, baseline_idx):
     return separation_regions, wrong
 
 
-def check_baseline(word_img, start, end, upper_base, lower_base):
-    
-    j = end+1
-
-    cnt = 0
-    while j < start:
-    
-        # Black pixel (Discontinuity)
-        base = upper_base
-        while base <= lower_base:
-            
-            pixel = word_img[base][j]
-            cnt += pixel
-
-            base += 1
-        
-        j += 1
-
-    if cnt == 0:
-        return False
-
-    return True
 
 
 def inside_hole(word_img, end_idx, start_idx):

@@ -3,7 +3,6 @@ import cv2 as cv
 import os
 import re
 import sys
-import random
 from utilities import projection, read_image
 from glob import glob
 from tqdm import tqdm
